@@ -28,6 +28,12 @@ tryhackx-cover-studio:
     default_cover_help: Optional image shown for users without a cover. Leave empty for the classic solid color.
     permission:
       set_cover: Set own profile cover
+    support:
+      button: Support Development
+      title: Support This Extension
+      description: If you find this extension useful, please consider supporting its development with a small donation. Every contribution helps keep the project alive and maintained.
+      copy: Copy address
+      thanks: Thank you for your support!
   api:
     invalid_focus: The focal point must be a number between 0 and 100.
     invalid_zoom: The zoom must be a number between 0.5 and 4.

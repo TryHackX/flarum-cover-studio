@@ -1,10 +1,24 @@
 import app from 'flarum/admin/app';
 import Extend from 'flarum/common/extenders';
+import Button from 'flarum/common/components/Button';
+
+import SupportModal from './components/SupportModal';
 
 const t = (key: string) => app.translator.trans(`tryhackx-cover-studio.admin.${key}`);
 
 export default [
   new Extend.Admin()
+    // Priority 100 keeps the donation button above every regular setting.
+    .customSetting(
+      () => (
+        <div className="CoverStudio-support">
+          <Button className="Button" icon="fas fa-heart" onclick={() => app.modal.show(SupportModal)}>
+            {t('support.button')}
+          </Button>
+        </div>
+      ),
+      100
+    )
     .setting(() => ({
       setting: 'tryhackx-cover-studio.max_size',
       type: 'number',

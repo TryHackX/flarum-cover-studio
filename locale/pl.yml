@@ -29,6 +29,12 @@ tryhackx-cover-studio:
     default_cover_help: Opcjonalny obraz dla użytkowników bez covera. Zostaw puste, aby użyć klasycznego koloru.
     permission:
       set_cover: Ustawianie własnego covera profilu
+    support:
+      button: Wesprzyj rozwój
+      title: Wesprzyj tę modyfikację
+      description: Jeśli uważasz tę modyfikację za przydatną, rozważ wsparcie jej rozwoju niewielką darowizną. Każdy wkład pomaga utrzymać projekt przy życiu.
+      copy: Kopiuj adres
+      thanks: Dziękuję za wsparcie!
   api:
     invalid_focus: Punkt centralny musi być liczbą od 0 do 100.
     invalid_zoom: Powiększenie musi być liczbą od 0,5 do 4.
