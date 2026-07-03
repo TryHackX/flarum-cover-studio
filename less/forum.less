@@ -24,9 +24,18 @@
 
   // Core paints .darkenBackground with a translucent shade — disable it; the
   // readability overlay is our full-height .CoverStudio-cover-overlay layer.
+  //
+  // Keep it positioned so it paints above the cover layers, but do NOT give it
+  // a z-index. A z-index here turns .darkenBackground into a stacking context,
+  // which traps .UserCard-controls inside it: on phones core promotes that
+  // dropdown to position:absolute; z-index:calc(var(--zindex-header) + 1) so it
+  // floats ABOVE the fixed, opaque, full-width .App-navigation bar (z-index:
+  // var(--zindex-header)) — trapped at this element's level it gets painted
+  // BEHIND that bar and disappears. The cover layers are unshift()ed ahead of
+  // .darkenBackground in the DOM, so tree order alone already paints it above
+  // them; relative positioning without a z-index is enough.
   > .darkenBackground {
     position: relative;
-    z-index: 1;
     background: none;
   }
 }
