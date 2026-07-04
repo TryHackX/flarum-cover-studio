@@ -3,6 +3,7 @@ import Extend from 'flarum/common/extenders';
 import Button from 'flarum/common/components/Button';
 
 import SupportModal from './components/SupportModal';
+import DefaultImageSetting from './components/DefaultImageSetting';
 
 const t = (key: string) => app.translator.trans(`tryhackx-cover-studio.admin.${key}`);
 
@@ -78,13 +79,8 @@ export default [
       label: t('avatar_focus_label'),
       help: t('avatar_focus_help'),
     }))
-    .setting(() => ({
-      setting: 'tryhackx-cover-studio.default_cover_url',
-      type: 'url',
-      placeholder: 'https://example.com/default-cover.jpg',
-      label: t('default_cover_label'),
-      help: t('default_cover_help'),
-    }))
+    .customSetting(() => <DefaultImageSetting kind="cover" />)
+    .customSetting(() => <DefaultImageSetting kind="avatar" />)
     .permission(
       () => ({
         icon: 'fas fa-panorama',

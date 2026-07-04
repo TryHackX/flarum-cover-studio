@@ -5,7 +5,7 @@ import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 import type User from 'flarum/common/models/User';
 import type Mithril from 'mithril';
 
-import FocusDragArea from './FocusDragArea';
+import FocusDragArea from '../../common/components/FocusDragArea';
 import { mediaPickerAvailable, openMediaPicker } from '../mediaPicker';
 import { formatBytes, clampZoom } from '../../common/util';
 

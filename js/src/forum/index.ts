@@ -2,6 +2,7 @@ import app from 'flarum/forum/app';
 import { extend } from 'flarum/common/extend';
 
 import applyCoverToUserCards from './applyCoverToUserCards';
+import applyDefaultAvatar from './applyDefaultAvatar';
 import addCoverControls from './addCoverControls';
 import extendAvatarEditor from './extendAvatarEditor';
 
@@ -9,6 +10,7 @@ export { default as extend } from './extend';
 
 app.initializers.add('tryhackx/flarum-cover-studio', () => {
   applyCoverToUserCards();
+  applyDefaultAvatar();
   addCoverControls();
   extendAvatarEditor();
 

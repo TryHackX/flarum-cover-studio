@@ -25,8 +25,30 @@ tryhackx-cover-studio:
       użytkownika, a pozycję kadru można zmieniać w dowolnym momencie bez
       ponownego wgrywania. Awatar pozostaje standardowym awatarem Flarum
       we wszystkich miejscach.
-    default_cover_label: Domyślny cover (URL)
-    default_cover_help: Opcjonalny obraz dla użytkowników bez covera. Zostaw puste, aby użyć klasycznego koloru.
+    default_cover_label: Domyślny cover
+    default_cover_help: Opcjonalny obraz dla użytkowników bez własnego covera. Wgrane pliki trafiają do multimediów współdzielonych. Zostaw puste, aby użyć klasycznego koloru.
+    default_avatar_label: Domyślny awatar
+    default_avatar_help: Opcjonalny obraz dla użytkowników bez awatara. Wgrane pliki trafiają do multimediów współdzielonych. Zostaw puste, aby użyć literowych awatarów Flarum.
+    default:
+      not_set: Nie ustawiono
+      set_button: Ustaw obraz
+      change_button: Zmień obraz
+      remove_button: Usuń
+      upload_button: Wgraj obraz
+      media_button: Wybierz z multimediów współdzielonych
+      save_position_button: Zapisz pozycję
+      zoom_label: Powiększenie
+      zoom_reset: Resetuj powiększenie do 1×
+      cover_title: Domyślny cover
+      avatar_title: Domyślny awatar
+      cover_empty: Brak domyślnego covera — wgraj obraz lub wybierz z multimediów współdzielonych.
+      avatar_empty: Brak domyślnego awatara — wgraj obraz lub wybierz z multimediów współdzielonych.
+      size_hint: "Maksymalny rozmiar: {max}. Obraz zachowuje pełną rozdzielczość; przeciągnij, aby wybrać widoczny obszar."
+      remove_confirm: Usunąć ten domyślny obraz? Plik pozostanie w multimediach współdzielonych.
+      picker_back: Wstecz
+      picker_empty: Brak obrazów współdzielonych. Najpierw wgraj jakiś do multimediów współdzielonych.
+      saved: Zapisano.
+      generic_error: Coś poszło nie tak. Spróbuj ponownie.
     permission:
       set_cover: Ustawianie własnego covera profilu
     support:
@@ -44,6 +66,8 @@ tryhackx-cover-studio:
     upload_failed: Nie udało się zapisać pliku. Spróbuj ponownie.
     too_many_uploads: Wgrywasz pliki zbyt szybko. Odczekaj minutę i spróbuj ponownie.
     file_not_eligible: Ten plik nie może zostać użyty jako cover.
+    no_default_image: Nie ma domyślnego obrazu do przesunięcia.
+    unknown_default_kind: Nieznany typ domyślnego obrazu.
     no_cover: Nie ma covera do przesunięcia.
     no_original: Oryginał awatara jest niedostępny — najpierw wgraj nowy awatar.
     original_unreadable: Nie udało się odczytać oryginalnego obrazu. Wgraj nowy awatar.

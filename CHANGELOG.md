@@ -4,6 +4,25 @@ All notable changes to `tryhackx/flarum-cover-studio` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.0] - 2026-07-04
+
+### Added
+- **Default cover** and **default avatar** are now managed through the same
+  focal-point editor modal used on profiles, instead of a plain URL field.
+  Admins can upload an image or pick one from the FoF Upload **shared media**
+  library, reposition it (drag + zoom 0.5×–4×) and remove it. Uploads are stored
+  as shared files. The default avatar is shown (client-side) for users who have
+  not set their own, with core's letter avatar kept as the ultimate fallback.
+
+### Changed
+- The `Default cover URL` admin text field was replaced by the new default-cover
+  editor. Any previously configured URL keeps working and is shown in the editor.
+
+### Backend
+- New admin-only endpoints `POST|PATCH|DELETE /api/cover-studio/default/{kind}`
+  (`kind` = `cover` | `avatar`) and settings
+  `default_{cover,avatar}_{url,focus_x,focus_y,zoom}`. No migration required.
+
 ## [2.0.2] - 2026-07-03
 
 ### Fixed
@@ -32,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   (gradient / darken / none), a default cover URL, and an optional migration
   from `sycho/flarum-profile-cover`.
 
+[2.1.0]: https://github.com/TryHackX/flarum-cover-studio/releases/tag/v2.1.0
 [2.0.2]: https://github.com/TryHackX/flarum-cover-studio/releases/tag/v2.0.2
 [2.0.1]: https://github.com/TryHackX/flarum-cover-studio/releases/tag/v2.0.1
 [2.0.0]: https://github.com/TryHackX/flarum-cover-studio/releases/tag/v2.0.0

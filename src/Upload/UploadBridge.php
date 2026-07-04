@@ -74,10 +74,11 @@ class UploadBridge
      * @param UploadedFileInterface $uploadedFile the raw PSR-7 upload
      * @param User                  $actor        who performs the action (permission subject for throttling/events)
      * @param User                  $owner        whose media library the file lands in
+     * @param bool                  $shared       store as a shared media file (forum-wide, admin managed)
      *
      * @throws ValidationException
      */
-    public function uploadImage(UploadedFileInterface $uploadedFile, User $actor, User $owner): File
+    public function uploadImage(UploadedFileInterface $uploadedFile, User $actor, User $owner, bool $shared = false): File
     {
         $this->assertNotFlooding($owner, $actor);
 
@@ -110,7 +111,7 @@ class UploadBridge
             // upstream signature changes — ownership is security-relevant here.)
             $file->actor_id = $owner->id;
             $file->hidden = false;
-            $file->shared = false;
+            $file->shared = $shared;
 
             $this->events->dispatch(
                 new Events\File\WillBeUploaded($actor, $file, $upload, $mime)
@@ -170,6 +171,29 @@ class UploadBridge
             $file === null
             || $file->actor_id !== $owner->id
             || $file->shared
+            || !in_array($file->type, self::ALLOWED_MIMES, true)
+        ) {
+            throw new ValidationException([
+                'file' => $this->translator->trans('tryhackx-cover-studio.api.file_not_eligible'),
+            ]);
+        }
+
+        return $file;
+    }
+
+    /**
+     * Resolve a media-manager file id into a File usable as a forum-wide
+     * default image: it must exist, be a SHARED file and a supported raster
+     * image. Callers must already have asserted admin — this is only reached
+     * from the admin default cover/avatar picker.
+     */
+    public function resolveSharedImage(mixed $fileId): File
+    {
+        $file = is_numeric($fileId) ? File::query()->find((int) $fileId) : null;
+
+        if (
+            $file === null
+            || !$file->shared
             || !in_array($file->type, self::ALLOWED_MIMES, true)
         ) {
             throw new ValidationException([

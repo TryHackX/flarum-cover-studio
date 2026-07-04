@@ -66,9 +66,9 @@ export default function applyCoverToUserCards() {
       if (!fallback) return;
 
       url = fallback;
-      x = 50;
-      y = 50;
-      zoom = 1;
+      x = clampFocus(Number(app.forum.attribute('tryhackx-cover-studio.default_cover_focus_x') ?? 50));
+      y = clampFocus(Number(app.forum.attribute('tryhackx-cover-studio.default_cover_focus_y') ?? 50));
+      zoom = clampZoom(Number(app.forum.attribute('tryhackx-cover-studio.default_cover_zoom') ?? 1));
       isDefault = true;
     }
 

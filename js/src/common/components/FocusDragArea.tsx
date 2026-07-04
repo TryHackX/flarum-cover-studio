@@ -1,8 +1,8 @@
-import app from 'flarum/forum/app';
+import app from 'flarum/common/app';
 import Component, { ComponentAttrs } from 'flarum/common/Component';
 import Icon from 'flarum/common/components/Icon';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
-import { clampFocus, clampZoom } from '../../common/util';
+import { clampFocus, clampZoom } from '../util';
 import type Mithril from 'mithril';
 
 export interface FocusDragAreaAttrs extends ComponentAttrs {
