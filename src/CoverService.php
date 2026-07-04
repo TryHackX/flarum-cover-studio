@@ -53,7 +53,6 @@ class CoverService
 
         $this->apply($user, $fofFile, Focus::parse($focusX), Focus::parse($focusY), Focus::parseZoom($zoom));
 
-        $user->save();
         $this->dispatchEventsFor($user, $actor);
 
         return $user;
@@ -72,7 +71,6 @@ class CoverService
 
         $this->apply($user, $fofFile, Focus::parse($focusX), Focus::parse($focusY), Focus::parseZoom($zoom));
 
-        $user->save();
         $this->dispatchEventsFor($user, $actor);
 
         return $user;
@@ -86,17 +84,19 @@ class CoverService
         $actor->assertRegistered();
         $actor->assertCan('setCover', $user);
 
-        if (!$user->cover_file_id) {
+        $data = $user->coverStudioData;
+
+        if ($data === null || !$data->cover_file_id) {
             throw new ValidationException([
                 'cover' => $this->translator->trans('tryhackx-cover-studio.api.no_cover'),
             ]);
         }
 
-        $user->cover_focus_x = Focus::parse($focusX, $user->cover_focus_x ?? Focus::DEFAULT);
-        $user->cover_focus_y = Focus::parse($focusY, $user->cover_focus_y ?? Focus::DEFAULT);
-        $user->cover_zoom = Focus::parseZoom($zoom, $user->cover_zoom ?? Focus::ZOOM_DEFAULT);
+        $data->cover_focus_x = Focus::parse($focusX, $data->cover_focus_x ?? Focus::DEFAULT);
+        $data->cover_focus_y = Focus::parse($focusY, $data->cover_focus_y ?? Focus::DEFAULT);
+        $data->cover_zoom = Focus::parseZoom($zoom, $data->cover_zoom ?? Focus::ZOOM_DEFAULT);
 
-        $user->save();
+        $data->saveOrPurge();
         $this->dispatchEventsFor($user, $actor);
 
         return $user;
@@ -111,14 +111,20 @@ class CoverService
         $actor->assertRegistered();
         $actor->assertCan('setCover', $user);
 
-        $user->cover_file_id = null;
-        $user->cover_url = null;
-        $user->cover_thumb_url = null;
-        $user->cover_focus_x = Focus::DEFAULT;
-        $user->cover_focus_y = Focus::DEFAULT;
-        $user->cover_zoom = Focus::ZOOM_DEFAULT;
+        $data = $user->coverStudioData;
 
-        $user->save();
+        if ($data !== null) {
+            $data->cover_file_id = null;
+            $data->cover_url = null;
+            $data->cover_thumb_url = null;
+            $data->cover_focus_x = Focus::DEFAULT;
+            $data->cover_focus_y = Focus::DEFAULT;
+            $data->cover_zoom = Focus::ZOOM_DEFAULT;
+
+            // Drops the row entirely when no avatar original remains either.
+            $data->saveOrPurge();
+        }
+
         $this->dispatchEventsFor($user, $actor);
 
         return $user;
@@ -126,11 +132,13 @@ class CoverService
 
     protected function apply(User $user, File $file, float $focusX, float $focusY, float $zoom): void
     {
-        $user->cover_file_id = $file->id;
-        $user->cover_url = $file->url;
-        $user->cover_thumb_url = $file->thumbnail_url;
-        $user->cover_focus_x = $focusX;
-        $user->cover_focus_y = $focusY;
-        $user->cover_zoom = $zoom;
+        $data = CoverStudioUserData::forUser($user);
+        $data->cover_file_id = $file->id;
+        $data->cover_url = $file->url;
+        $data->cover_thumb_url = $file->thumbnail_url;
+        $data->cover_focus_x = $focusX;
+        $data->cover_focus_y = $focusY;
+        $data->cover_zoom = $zoom;
+        $data->saveOrPurge();
     }
 }

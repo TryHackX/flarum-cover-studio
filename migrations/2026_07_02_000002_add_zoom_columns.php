@@ -17,12 +17,14 @@ return [
         $schema->table('users', function (Blueprint $table) use ($schema) {
             if (!$schema->hasColumn('users', 'cover_zoom')) {
                 // Zoom factor over the base "cover" fit (1.00 = no zoom).
-                $table->decimal('cover_zoom', 4, 2)->unsigned()->default(1);
+                // No ->unsigned(): MySQL-only modifier; the 0.50–4.00 range is
+                // enforced in Focus::parseZoom() before any write.
+                $table->decimal('cover_zoom', 4, 2)->default(1);
             }
 
             if (!$schema->hasColumn('users', 'avatar_zoom')) {
                 // Avatar crop zoom: the square crop side is min(w,h) / zoom.
-                $table->decimal('avatar_zoom', 4, 2)->unsigned()->default(1);
+                $table->decimal('avatar_zoom', 4, 2)->default(1);
             }
         });
     },

@@ -64,7 +64,8 @@ class UploadBridge
         protected Util $util,
         protected FileRepository $files,
         protected TranslatorInterface $translator,
-        protected Paths $paths
+        protected Paths $paths,
+        protected Client $http
     ) {
     }
 
@@ -74,10 +75,11 @@ class UploadBridge
      * @param UploadedFileInterface $uploadedFile the raw PSR-7 upload
      * @param User                  $actor        who performs the action (permission subject for throttling/events)
      * @param User                  $owner        whose media library the file lands in
+     * @param bool                  $shared       store as a shared media file (forum-wide, admin managed)
      *
      * @throws ValidationException
      */
-    public function uploadImage(UploadedFileInterface $uploadedFile, User $actor, User $owner): File
+    public function uploadImage(UploadedFileInterface $uploadedFile, User $actor, User $owner, bool $shared = false): File
     {
         $this->assertNotFlooding($owner, $actor);
 
@@ -110,7 +112,7 @@ class UploadBridge
             // upstream signature changes — ownership is security-relevant here.)
             $file->actor_id = $owner->id;
             $file->hidden = false;
-            $file->shared = false;
+            $file->shared = $shared;
 
             $this->events->dispatch(
                 new Events\File\WillBeUploaded($actor, $file, $upload, $mime)
@@ -181,6 +183,29 @@ class UploadBridge
     }
 
     /**
+     * Resolve a media-manager file id into a File usable as a forum-wide
+     * default image: it must exist, be a SHARED file and a supported raster
+     * image. Callers must already have asserted admin — this is only reached
+     * from the admin default cover/avatar picker.
+     */
+    public function resolveSharedImage(mixed $fileId): File
+    {
+        $file = is_numeric($fileId) ? File::query()->find((int) $fileId) : null;
+
+        if (
+            $file === null
+            || !$file->shared
+            || !in_array($file->type, self::ALLOWED_MIMES, true)
+        ) {
+            throw new ValidationException([
+                'file' => $this->translator->trans('tryhackx-cover-studio.api.file_not_eligible'),
+            ]);
+        }
+
+        return $file;
+    }
+
+    /**
      * Read the raw bytes of a previously uploaded file back from storage.
      *
      * Local files are read straight from disk; remote adapters (S3, Imgur,
@@ -191,7 +216,7 @@ class UploadBridge
     {
         if (in_array($file->upload_method, ['local', null, ''], true)) {
             $filesystem = new Filesystem(
-                new LocalFilesystemAdapter($this->paths->public . '/assets/files')
+                new LocalFilesystemAdapter($this->localFilesRoot())
             );
 
             try {
@@ -206,20 +231,31 @@ class UploadBridge
         return $this->fetchRemote($file->url);
     }
 
+    /**
+     * Absolute path to fof/upload's local storage root. Kept in one place so
+     * the assumption about fof's on-disk layout is easy to find and update if
+     * it ever changes.
+     */
+    protected function localFilesRoot(): string
+    {
+        return $this->paths->public . '/assets/files';
+    }
+
     protected function fetchRemote(string $url): ?string
     {
         if (!in_array(parse_url($url, PHP_URL_SCHEME), ['http', 'https'], true)) {
             return null;
         }
 
-        $client = new Client([
-            'timeout'         => 15,
-            'allow_redirects' => ['max' => 3],
-            'headers'         => ['Accept' => 'image/*'],
-        ]);
-
         try {
-            $response = $client->get($url, ['stream' => true]);
+            // Limits kept explicit at the call site: they are the SSRF/abuse
+            // guard for fetching a remote-adapter (S3/Imgur/…) file back.
+            $response = $this->http->get($url, [
+                'timeout'         => 15,
+                'allow_redirects' => ['max' => 3],
+                'headers'         => ['Accept' => 'image/*'],
+                'stream'          => true,
+            ]);
         } catch (\Exception) {
             return null;
         }

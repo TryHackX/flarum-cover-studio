@@ -31,19 +31,20 @@ class ClearAvatarFocusOnExternalChange
             return;
         }
 
-        $user = $event->user;
+        $data = $event->user->coverStudioData;
 
-        if ($user->avatar_file_id === null && $user->avatar_original_url === null) {
+        if ($data === null || $data->avatar_file_id === null) {
             return;
         }
 
-        $user->avatar_file_id = null;
-        $user->avatar_original_url = null;
-        $user->avatar_focus_x = Focus::DEFAULT;
-        $user->avatar_focus_y = Focus::DEFAULT;
+        $data->avatar_file_id = null;
+        $data->avatar_original_url = null;
+        $data->avatar_focus_x = Focus::DEFAULT;
+        $data->avatar_focus_y = Focus::DEFAULT;
+        $data->avatar_zoom = Focus::ZOOM_DEFAULT;
 
-        // AvatarChanged is dispatched after the triggering save, so persist our
-        // cleanup with a quiet save — no events, no listener loops.
-        $user->saveQuietly();
+        // Persist the cleanup (or drop the row if no cover remains either). The
+        // companion model has no listeners, so this cannot loop back into us.
+        $data->saveOrPurge();
     }
 }

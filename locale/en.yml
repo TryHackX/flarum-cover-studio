@@ -24,8 +24,30 @@ tryhackx-cover-studio:
       Avatar uploads keep the original image in the user's media manager, and
       users can re-position the crop at any time without re-uploading. The
       avatar itself remains a standard Flarum avatar everywhere.
-    default_cover_label: Default cover URL
-    default_cover_help: Optional image shown for users without a cover. Leave empty for the classic solid color.
+    default_cover_label: Default cover
+    default_cover_help: Optional image shown for users without a cover of their own. Uploads go to your shared media. Leave empty for the classic solid color.
+    default_avatar_label: Default avatar
+    default_avatar_help: Optional image shown for users without an avatar. Uploads go to your shared media. Leave empty for Flarum's letter avatars.
+    default:
+      not_set: Not set
+      set_button: Set image
+      change_button: Change image
+      remove_button: Remove
+      upload_button: Upload image
+      media_button: Choose from shared media
+      save_position_button: Save position
+      zoom_label: Zoom
+      zoom_reset: Reset zoom to 1×
+      cover_title: Default cover
+      avatar_title: Default avatar
+      cover_empty: No default cover yet — upload an image or choose one from your shared media.
+      avatar_empty: No default avatar yet — upload an image or choose one from your shared media.
+      size_hint: "Maximum size: {max}. The full-resolution image is kept; drag to choose the visible area."
+      remove_confirm: Remove this default image? The file will stay in your shared media.
+      picker_back: Back
+      picker_empty: No shared images yet. Upload one to your shared media first.
+      saved: Saved.
+      generic_error: Something went wrong. Please try again.
     permission:
       set_cover: Set own profile cover
     support:
@@ -43,6 +65,8 @@ tryhackx-cover-studio:
     upload_failed: The file could not be stored. Please try again.
     too_many_uploads: You are uploading too quickly. Please wait a minute and try again.
     file_not_eligible: This file cannot be used as a cover.
+    no_default_image: There is no default image to re-position.
+    unknown_default_kind: Unknown default image type.
     no_cover: There is no cover to re-position.
     no_original: The original avatar image is unavailable — upload a new avatar first.
     original_unreadable: The original image could not be read. Upload a new avatar instead.

@@ -34,8 +34,11 @@ return [
                 $table->string('cover_thumb_url', 500)->nullable();
 
                 // Focal point of the cover, as percentages (CSS background-position).
-                $table->decimal('cover_focus_x', 5, 2)->unsigned()->default(50);
-                $table->decimal('cover_focus_y', 5, 2)->unsigned()->default(50);
+                // No ->unsigned(): it is a MySQL-only modifier (silently dropped by
+                // the Postgres/SQLite grammars). The 0–100 range is enforced in
+                // Focus::clamp() before any write, so the DB constraint is redundant.
+                $table->decimal('cover_focus_x', 5, 2)->default(50);
+                $table->decimal('cover_focus_y', 5, 2)->default(50);
             }
 
             if (!$schema->hasColumn('users', 'avatar_file_id')) {
@@ -49,8 +52,9 @@ return [
 
                 $table->string('avatar_original_url', 500)->nullable();
 
-                $table->decimal('avatar_focus_x', 5, 2)->unsigned()->default(50);
-                $table->decimal('avatar_focus_y', 5, 2)->unsigned()->default(50);
+                // See note above: no ->unsigned() (MySQL-only; range enforced in Focus).
+                $table->decimal('avatar_focus_x', 5, 2)->default(50);
+                $table->decimal('avatar_focus_y', 5, 2)->default(50);
             }
         });
     },

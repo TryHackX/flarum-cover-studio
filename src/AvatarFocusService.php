@@ -98,12 +98,15 @@ class AvatarFocusService
         try {
             $this->cropAndStore($user, $image, $x, $y, $z);
 
-            $user->avatar_file_id = $fofFile->id;
-            $user->avatar_original_url = $fofFile->url;
-            $user->avatar_focus_x = $x;
-            $user->avatar_focus_y = $y;
-            $user->avatar_zoom = $z;
+            $data = CoverStudioUserData::forUser($user);
+            $data->avatar_file_id = $fofFile->id;
+            $data->avatar_original_url = $fofFile->url;
+            $data->avatar_focus_x = $x;
+            $data->avatar_focus_y = $y;
+            $data->avatar_zoom = $z;
+            $data->saveOrPurge();
 
+            // Persist the core avatar files written by cropAndStore().
             $user->save();
             $this->dispatchEventsFor($user, $actor);
         } finally {
@@ -148,12 +151,15 @@ class AvatarFocusService
         try {
             $this->cropAndStore($user, $image, $x, $y, $z);
 
-            $user->avatar_file_id = $fofFile->id;
-            $user->avatar_original_url = $fofFile->url;
-            $user->avatar_focus_x = $x;
-            $user->avatar_focus_y = $y;
-            $user->avatar_zoom = $z;
+            $data = CoverStudioUserData::forUser($user);
+            $data->avatar_file_id = $fofFile->id;
+            $data->avatar_original_url = $fofFile->url;
+            $data->avatar_focus_x = $x;
+            $data->avatar_focus_y = $y;
+            $data->avatar_zoom = $z;
+            $data->saveOrPurge();
 
+            // Persist the core avatar files written by cropAndStore().
             $user->save();
             $this->dispatchEventsFor($user, $actor);
         } finally {
@@ -172,7 +178,8 @@ class AvatarFocusService
         $actor->assertRegistered();
         $actor->assertCan('setAvatarFocus', $user);
 
-        $fofFile = $user->avatar_file_id ? File::query()->find($user->avatar_file_id) : null;
+        $data = $user->coverStudioData;
+        $fofFile = $data && $data->avatar_file_id ? File::query()->find($data->avatar_file_id) : null;
 
         if ($fofFile === null) {
             throw new ValidationException([
@@ -188,9 +195,9 @@ class AvatarFocusService
             ]);
         }
 
-        $x = Focus::parse($focusX, $user->avatar_focus_x ?? Focus::DEFAULT);
-        $y = Focus::parse($focusY, $user->avatar_focus_y ?? Focus::DEFAULT);
-        $z = Focus::parseZoom($zoom, $user->avatar_zoom ?? Focus::ZOOM_DEFAULT);
+        $x = Focus::parse($focusX, $data->avatar_focus_x ?? Focus::DEFAULT);
+        $y = Focus::parse($focusY, $data->avatar_focus_y ?? Focus::DEFAULT);
+        $z = Focus::parseZoom($zoom, $data->avatar_zoom ?? Focus::ZOOM_DEFAULT);
 
         $image = $this->readImage($bytes);
 
@@ -201,10 +208,12 @@ class AvatarFocusService
         try {
             $this->cropAndStore($user, $image, $x, $y, $z);
 
-            $user->avatar_focus_x = $x;
-            $user->avatar_focus_y = $y;
-            $user->avatar_zoom = $z;
+            $data->avatar_focus_x = $x;
+            $data->avatar_focus_y = $y;
+            $data->avatar_zoom = $z;
+            $data->saveOrPurge();
 
+            // Persist the core avatar files written by cropAndStore().
             $user->save();
             $this->dispatchEventsFor($user, $actor);
         } finally {

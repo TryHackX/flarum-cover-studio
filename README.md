@@ -91,6 +91,15 @@ transform-origin: X% Y%;       /* zoom magnifies around the focal point */
 
 The editor preview uses the exact same math, so what you see while dragging is what gets rendered — at any container size or aspect ratio. For avatars, the square crop window (`min(width, height) / zoom`, centered on the focal point and clamped to the image bounds) is applied server-side from the stored original.
 
+## Performance & scale
+
+Cover Studio is built to stay cheap on large forums (hundreds of thousands to millions of users):
+
+- Cover and avatar focal-point data lives in a dedicated **`cover_studio_user_data`** companion table keyed by `user_id`, **not** on the hot `users` table — so serializing post authors in discussion lists never has to read wider user rows.
+- That table is **sparse**: a row exists only for users who have actually set a cover or an avatar original, and it is deleted again once neither remains.
+- The row is **eager-loaded on every user query**, so it is fetched in a single batched `WHERE user_id IN (…)` — no N+1, whether users appear as authors, in the [user directory](https://github.com/FriendsOfFlarum/user-directory), in hover cards or in notifications.
+- Cover URLs are denormalized onto that row, so rendering a cover never touches the file relation.
+
 ## Security notes
 
 - Real (magic-byte) MIME detection via FoF Upload's detector; client-declared types are only a first-line check.
