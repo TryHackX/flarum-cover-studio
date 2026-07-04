@@ -4,6 +4,26 @@ All notable changes to `tryhackx/flarum-cover-studio` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.2.1] - 2026-07-04
+
+### Fixed
+- The avatar-focus guard is now a request-scoped, container-managed instance
+  instead of a `static` property. Under persistent-process servers (Octane /
+  RoadRunner / Swoole) a worker terminated mid-re-crop could previously leave
+  the flag set, silently disabling the "clear the stored avatar original on an
+  external avatar change" listener for the rest of that worker's life. No effect
+  under standard PHP-FPM, where the flag was already reset per request.
+
+### Internal
+- `Focus` is now an injectable service (translator injected via the constructor)
+  instead of reaching into the container with `resolve()` on its error path,
+  making focal-point parsing unit-testable in isolation.
+- `MigrateSychoCommand` injects `Illuminate\Database\Schema\Builder` for its
+  schema-introspection check instead of `Illuminate\Database\ConnectionInterface`,
+  per Flarum convention.
+
+No migration required.
+
 ## [2.2.0] - 2026-07-04
 
 ### Performance
@@ -86,6 +106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   (gradient / darken / none), a default cover URL, and an optional migration
   from `sycho/flarum-profile-cover`.
 
+[2.2.1]: https://github.com/TryHackX/flarum-cover-studio/releases/tag/v2.2.1
 [2.2.0]: https://github.com/TryHackX/flarum-cover-studio/releases/tag/v2.2.0
 [2.1.0]: https://github.com/TryHackX/flarum-cover-studio/releases/tag/v2.1.0
 [2.0.2]: https://github.com/TryHackX/flarum-cover-studio/releases/tag/v2.0.2

@@ -17,10 +17,19 @@ use FoF\Upload\File;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Eloquent\Builder;
 use TryHackX\CoverStudio\CoverStudioUserData;
+use TryHackX\CoverStudio\Support\AvatarApplyGuard;
 use TryHackX\CoverStudio\Support\Focus;
 
 class CoverStudioServiceProvider extends AbstractServiceProvider
 {
+    public function register(): void
+    {
+        // Shared, request-scoped instance so AvatarFocusService (the writer) and
+        // ClearAvatarFocusOnExternalChange (the reader) see the same flag. See
+        // AvatarApplyGuard for why this is a container binding, not a static.
+        $this->container->singleton(AvatarApplyGuard::class);
+    }
+
     public function boot(Dispatcher $events): void
     {
         $this->eagerLoadCompanionRow();

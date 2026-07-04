@@ -12,11 +12,16 @@
 namespace TryHackX\CoverStudio\Support;
 
 use Flarum\Foundation\ValidationException;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Focal-point value handling. A focal point is a pair of percentages (0–100)
  * describing which part of the image should stay centered when the image is
  * cropped or displayed with `background-size: cover`.
+ *
+ * Injected as a service (the translator is a constructor dependency) rather
+ * than used as a static container-locator: the parsing methods are instance
+ * methods, while the pure value constants and the clamp helper stay static.
  */
 class Focus
 {
@@ -27,6 +32,11 @@ class Focus
     // fit and the exposed bands are filled with a blurred copy of the image.
     public const ZOOM_MIN = 0.5;
     public const ZOOM_MAX = 4.0;
+
+    public function __construct(
+        protected TranslatorInterface $translator
+    ) {
+    }
 
     /**
      * Clamp an already-numeric value into the valid 0–100 range,
@@ -45,19 +55,14 @@ class Focus
      *
      * @throws ValidationException when the value is present but not numeric
      */
-    public static function parse(mixed $value, float $default = self::DEFAULT): float
+    public function parse(mixed $value, float $default = self::DEFAULT): float
     {
         if ($value === null || $value === '') {
             return $default;
         }
 
         if (!is_numeric($value)) {
-            // resolve() rather than injection: this is a static helper used from
-            // several services, and the translator is only needed on this
-            // failure path.
-            $translator = resolve(\Symfony\Contracts\Translation\TranslatorInterface::class);
-
-            throw new ValidationException(['focus' => $translator->trans('tryhackx-cover-studio.api.invalid_focus')]);
+            throw new ValidationException(['focus' => $this->translator->trans('tryhackx-cover-studio.api.invalid_focus')]);
         }
 
         return self::clamp((float) $value);
@@ -68,16 +73,14 @@ class Focus
      * where 1 means "exactly the cover fit" / "largest possible avatar crop",
      * and values below 1 pull back with a blurred fill).
      */
-    public static function parseZoom(mixed $value, float $default = self::ZOOM_DEFAULT): float
+    public function parseZoom(mixed $value, float $default = self::ZOOM_DEFAULT): float
     {
         if ($value === null || $value === '') {
             return $default;
         }
 
         if (!is_numeric($value)) {
-            $translator = resolve(\Symfony\Contracts\Translation\TranslatorInterface::class);
-
-            throw new ValidationException(['zoom' => $translator->trans('tryhackx-cover-studio.api.invalid_zoom')]);
+            throw new ValidationException(['zoom' => $this->translator->trans('tryhackx-cover-studio.api.invalid_zoom')]);
         }
 
         return round(max(self::ZOOM_MIN, min(self::ZOOM_MAX, (float) $value)), 2);

@@ -38,7 +38,8 @@ class DefaultImageService
         protected SettingsRepositoryInterface $settings,
         protected CoverValidator $validator,
         protected UploadBridge $bridge,
-        protected TranslatorInterface $translator
+        protected TranslatorInterface $translator,
+        protected Focus $focus
     ) {
     }
 
@@ -67,9 +68,9 @@ class DefaultImageService
         }
 
         $this->settings->set($this->key($kind, 'url'), (string) $fofFile->url);
-        $this->settings->set($this->key($kind, 'focus_x'), Focus::parse($focusX));
-        $this->settings->set($this->key($kind, 'focus_y'), Focus::parse($focusY));
-        $this->settings->set($this->key($kind, 'zoom'), Focus::parseZoom($zoom));
+        $this->settings->set($this->key($kind, 'focus_x'), $this->focus->parse($focusX));
+        $this->settings->set($this->key($kind, 'focus_y'), $this->focus->parse($focusY));
+        $this->settings->set($this->key($kind, 'zoom'), $this->focus->parseZoom($zoom));
 
         return $this->values($kind);
     }
@@ -89,9 +90,9 @@ class DefaultImageService
             ]);
         }
 
-        $this->settings->set($this->key($kind, 'focus_x'), Focus::parse($focusX));
-        $this->settings->set($this->key($kind, 'focus_y'), Focus::parse($focusY));
-        $this->settings->set($this->key($kind, 'zoom'), Focus::parseZoom($zoom));
+        $this->settings->set($this->key($kind, 'focus_x'), $this->focus->parse($focusX));
+        $this->settings->set($this->key($kind, 'focus_y'), $this->focus->parse($focusY));
+        $this->settings->set($this->key($kind, 'zoom'), $this->focus->parseZoom($zoom));
 
         return $this->values($kind);
     }

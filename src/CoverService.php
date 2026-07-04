@@ -29,7 +29,8 @@ class CoverService
         protected Dispatcher $events,
         protected CoverValidator $validator,
         protected UploadBridge $bridge,
-        protected TranslatorInterface $translator
+        protected TranslatorInterface $translator,
+        protected Focus $focus
     ) {
     }
 
@@ -51,7 +52,7 @@ class CoverService
 
         $fofFile = $this->bridge->uploadImage($file, $actor, $user);
 
-        $this->apply($user, $fofFile, Focus::parse($focusX), Focus::parse($focusY), Focus::parseZoom($zoom));
+        $this->apply($user, $fofFile, $this->focus->parse($focusX), $this->focus->parse($focusY), $this->focus->parseZoom($zoom));
 
         $this->dispatchEventsFor($user, $actor);
 
@@ -69,7 +70,7 @@ class CoverService
         // Eligibility (ownership, mime, not shared) is enforced by the bridge.
         $fofFile = $this->bridge->resolveUserImage($fileId, $user);
 
-        $this->apply($user, $fofFile, Focus::parse($focusX), Focus::parse($focusY), Focus::parseZoom($zoom));
+        $this->apply($user, $fofFile, $this->focus->parse($focusX), $this->focus->parse($focusY), $this->focus->parseZoom($zoom));
 
         $this->dispatchEventsFor($user, $actor);
 
@@ -92,9 +93,9 @@ class CoverService
             ]);
         }
 
-        $data->cover_focus_x = Focus::parse($focusX, $data->cover_focus_x ?? Focus::DEFAULT);
-        $data->cover_focus_y = Focus::parse($focusY, $data->cover_focus_y ?? Focus::DEFAULT);
-        $data->cover_zoom = Focus::parseZoom($zoom, $data->cover_zoom ?? Focus::ZOOM_DEFAULT);
+        $data->cover_focus_x = $this->focus->parse($focusX, $data->cover_focus_x ?? Focus::DEFAULT);
+        $data->cover_focus_y = $this->focus->parse($focusY, $data->cover_focus_y ?? Focus::DEFAULT);
+        $data->cover_zoom = $this->focus->parseZoom($zoom, $data->cover_zoom ?? Focus::ZOOM_DEFAULT);
 
         $data->saveOrPurge();
         $this->dispatchEventsFor($user, $actor);

@@ -12,7 +12,7 @@
 namespace TryHackX\CoverStudio\Listener;
 
 use Flarum\User\Event\AvatarChanged;
-use TryHackX\CoverStudio\AvatarFocusService;
+use TryHackX\CoverStudio\Support\AvatarApplyGuard;
 use TryHackX\CoverStudio\Support\Focus;
 
 /**
@@ -25,9 +25,14 @@ use TryHackX\CoverStudio\Support\Focus;
  */
 class ClearAvatarFocusOnExternalChange
 {
+    public function __construct(
+        protected AvatarApplyGuard $applyGuard
+    ) {
+    }
+
     public function handle(AvatarChanged $event): void
     {
-        if (AvatarFocusService::$applying) {
+        if ($this->applyGuard->applying()) {
             return;
         }
 

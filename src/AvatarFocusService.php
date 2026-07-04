@@ -24,6 +24,7 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Interfaces\ImageInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use TryHackX\CoverStudio\Support\AvatarApplyGuard;
 use TryHackX\CoverStudio\Support\Focus;
 use TryHackX\CoverStudio\Upload\UploadBridge;
 
@@ -38,13 +39,6 @@ class AvatarFocusService
 {
     use DispatchEventsTrait;
 
-    /**
-     * Guard flag: true while THIS service is writing avatar files, so that the
-     * AvatarChanged listener can distinguish our own re-crops from external
-     * avatar changes (which must invalidate the stored original).
-     */
-    public static bool $applying = false;
-
     public function __construct(
         protected Dispatcher $events,
         protected SettingsRepositoryInterface $settings,
@@ -52,7 +46,9 @@ class AvatarFocusService
         protected AvatarUploader $avatarUploader,
         protected ImageManager $imageManager,
         protected UploadBridge $bridge,
-        protected TranslatorInterface $translator
+        protected TranslatorInterface $translator,
+        protected Focus $focus,
+        protected AvatarApplyGuard $applyGuard
     ) {
     }
 
@@ -85,15 +81,15 @@ class AvatarFocusService
 
         $fofFile = $this->bridge->uploadImage($file, $actor, $user);
 
-        $x = Focus::parse($focusX);
-        $y = Focus::parse($focusY);
-        $z = Focus::parseZoom($zoom);
+        $x = $this->focus->parse($focusX);
+        $y = $this->focus->parse($focusY);
+        $z = $this->focus->parseZoom($zoom);
 
         $image = $this->readImage($bytes);
 
         $this->events->dispatch(new AvatarSaving($user, $actor, $image));
 
-        self::$applying = true;
+        $this->applyGuard->begin();
 
         try {
             $this->cropAndStore($user, $image, $x, $y, $z);
@@ -110,7 +106,7 @@ class AvatarFocusService
             $user->save();
             $this->dispatchEventsFor($user, $actor);
         } finally {
-            self::$applying = false;
+            $this->applyGuard->end();
         }
 
         return $user;
@@ -138,15 +134,15 @@ class AvatarFocusService
             ]);
         }
 
-        $x = Focus::parse($focusX);
-        $y = Focus::parse($focusY);
-        $z = Focus::parseZoom($zoom);
+        $x = $this->focus->parse($focusX);
+        $y = $this->focus->parse($focusY);
+        $z = $this->focus->parseZoom($zoom);
 
         $image = $this->readImage($bytes);
 
         $this->events->dispatch(new AvatarSaving($user, $actor, $image));
 
-        self::$applying = true;
+        $this->applyGuard->begin();
 
         try {
             $this->cropAndStore($user, $image, $x, $y, $z);
@@ -163,7 +159,7 @@ class AvatarFocusService
             $user->save();
             $this->dispatchEventsFor($user, $actor);
         } finally {
-            self::$applying = false;
+            $this->applyGuard->end();
         }
 
         return $user;
@@ -195,15 +191,15 @@ class AvatarFocusService
             ]);
         }
 
-        $x = Focus::parse($focusX, $data->avatar_focus_x ?? Focus::DEFAULT);
-        $y = Focus::parse($focusY, $data->avatar_focus_y ?? Focus::DEFAULT);
-        $z = Focus::parseZoom($zoom, $data->avatar_zoom ?? Focus::ZOOM_DEFAULT);
+        $x = $this->focus->parse($focusX, $data->avatar_focus_x ?? Focus::DEFAULT);
+        $y = $this->focus->parse($focusY, $data->avatar_focus_y ?? Focus::DEFAULT);
+        $z = $this->focus->parseZoom($zoom, $data->avatar_zoom ?? Focus::ZOOM_DEFAULT);
 
         $image = $this->readImage($bytes);
 
         $this->events->dispatch(new AvatarSaving($user, $actor, $image));
 
-        self::$applying = true;
+        $this->applyGuard->begin();
 
         try {
             $this->cropAndStore($user, $image, $x, $y, $z);
@@ -217,7 +213,7 @@ class AvatarFocusService
             $user->save();
             $this->dispatchEventsFor($user, $actor);
         } finally {
-            self::$applying = false;
+            $this->applyGuard->end();
         }
 
         return $user;

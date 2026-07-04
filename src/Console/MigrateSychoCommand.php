@@ -20,7 +20,7 @@ use FoF\Upload\Contracts\Template;
 use FoF\Upload\File;
 use FoF\Upload\Helpers\Util;
 use Illuminate\Console\Command;
-use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\Schema\Builder;
 use Intervention\Image\ImageManager;
 use Ramsey\Uuid\Uuid;
 use TryHackX\CoverStudio\CoverStudioUserData;
@@ -58,10 +58,10 @@ class MigrateSychoCommand extends Command
         Paths $paths,
         Util $util,
         ImageManager $imageManager,
-        ConnectionInterface $db,
+        Builder $schema,
         SettingsRepositoryInterface $settings
     ): void {
-        if (!$db->getSchemaBuilder()->hasColumn('users', 'cover')) {
+        if (!$schema->hasColumn('users', 'cover')) {
             $this->error('The users.cover column does not exist — sycho/flarum-profile-cover is not installed (or was already purged). Nothing to migrate.');
 
             return;
