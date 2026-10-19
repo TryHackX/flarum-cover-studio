@@ -36,15 +36,17 @@ class UserPolicy extends AbstractPolicy
     }
 
     /**
-     * Whether $actor may change the avatar focal point of $user.
+     * Whether $actor may change the avatar (and its focal point) of $user.
      *
-     * Mirrors core avatar rules exactly: any registered user for themselves,
-     * moderators (edit-user ability) for others. The feature toggle is checked
-     * separately in the service layer.
+     * Delegates to core's own "editAvatar" ability (Flarum 2.0): the
+     * `user.editAvatar` permission for your own avatar, the edit-user ability
+     * for someone else's. Anything looser would let users who lost avatar
+     * rights change their avatar through this extension's endpoints. The
+     * feature toggle is checked separately in the service layer.
      */
     public function setAvatarFocus(User $actor, User $user): string
     {
-        if (!$actor->isGuest() && ($actor->id === $user->id || $actor->can('edit', $user))) {
+        if (!$actor->isGuest() && $actor->can('editAvatar', $user)) {
             return $this->allow();
         }
 

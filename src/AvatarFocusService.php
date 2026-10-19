@@ -19,6 +19,7 @@ use Flarum\User\AvatarValidator;
 use Flarum\User\Event\AvatarSaving;
 use Flarum\User\User;
 use FoF\Upload\File;
+use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Events\Dispatcher;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Interfaces\ImageInterface;
@@ -48,8 +49,39 @@ class AvatarFocusService
         protected UploadBridge $bridge,
         protected TranslatorInterface $translator,
         protected Focus $focus,
-        protected AvatarApplyGuard $applyGuard
+        protected AvatarApplyGuard $applyGuard,
+        protected Cache $cache
     ) {
+    }
+
+    /**
+     * Re-cropping decodes the stored original (up to MAX_PIXELS) and may blur a
+     * backdrop — far heavier than a plain settings write. Without a ceiling a
+     * single account could keep the image driver busy with focus changes.
+     * Admins are exempt; a cache failure never blocks the user.
+     */
+    protected const RECROPS_PER_MINUTE = 20;
+
+    protected function assertNotRecroppingTooFast(User $actor): void
+    {
+        if ($actor->isAdmin()) {
+            return;
+        }
+
+        $key = 'tryhackx-cover-studio.recrop:' . $actor->id . ':' . intdiv(time(), 60);
+
+        try {
+            $this->cache->add($key, 0, 120);
+            $count = (int) $this->cache->increment($key);
+        } catch (\Throwable) {
+            return;
+        }
+
+        if ($count > self::RECROPS_PER_MINUTE) {
+            throw new ValidationException([
+                'avatar' => $this->translator->trans('tryhackx-cover-studio.api.too_many_changes'),
+            ]);
+        }
     }
 
     /**
@@ -122,6 +154,7 @@ class AvatarFocusService
         $this->assertEnabled();
         $actor->assertRegistered();
         $actor->assertCan('setAvatarFocus', $user);
+        $this->assertNotRecroppingTooFast($actor);
 
         // Eligibility (ownership, mime, not shared) is enforced by the bridge.
         $fofFile = $this->bridge->resolveUserImage($fileId, $user);
@@ -173,6 +206,7 @@ class AvatarFocusService
         $this->assertEnabled();
         $actor->assertRegistered();
         $actor->assertCan('setAvatarFocus', $user);
+        $this->assertNotRecroppingTooFast($actor);
 
         $data = $user->coverStudioData;
         $fofFile = $data && $data->avatar_file_id ? File::query()->find($data->avatar_file_id) : null;

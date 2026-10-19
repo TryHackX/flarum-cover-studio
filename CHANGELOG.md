@@ -4,6 +4,29 @@ All notable changes to `tryhackx/flarum-cover-studio` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.3.0] - 2026-10-20
+
+### Security
+- Avatar changes made through Cover Studio (upload, "choose from My Media",
+  focal point / zoom) now follow core's `editAvatar` ability, introduced in
+  Flarum 2.0: the *Edit own avatar* permission (`user.editAvatar`) for your
+  own avatar, the *edit user* ability for someone else's. Previously any
+  registered user could change their own avatar through these endpoints even
+  after the forum revoked *Edit own avatar*.
+- Avatar re-crops that do not upload a file (focal point / zoom changes,
+  picking an existing media file) are limited to 20 per minute per user
+  (admins exempt). Each re-crop decodes the stored original, so they were the
+  one heavy operation without a ceiling.
+
+### Fixed
+- A failed move of the upload into fof/upload's temp directory (full disk,
+  permissions) now returns a validation error instead of a server error.
+
+### Changed
+- Requires Flarum `^2.0.2` and fof/upload `^2.0` (stable releases).
+
+No migration required.
+
 ## [2.2.1] - 2026-07-04
 
 ### Fixed

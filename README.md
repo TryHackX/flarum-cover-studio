@@ -26,8 +26,8 @@ When enabled, avatar uploads keep the **original image** in the user's media man
 
 ## Requirements
 
-- Flarum `^2.0`
-- [fof/upload](https://github.com/FriendsOfFlarum/upload) (installed **and enabled** — Flarum enforces the enable order automatically)
+- Flarum `^2.0.2`
+- [fof/upload](https://github.com/FriendsOfFlarum/upload) `^2.0` (installed **and enabled** — Flarum enforces the enable order automatically)
 - PHP `^8.3`
 
 ## Installation
@@ -65,7 +65,9 @@ php flarum cache:clear
 ## Permissions
 
 - **Set own profile cover** — granted to Members by default.
-- Editing someone else's cover or avatar focal point additionally requires the core *edit user* ability (moderators).
+- Editing someone else's cover additionally requires the core *edit user* ability (moderators).
+- The avatar (upload, "choose from My Media", focal point) follows core's own avatar rules exactly: the core *Edit own avatar* permission (`user.editAvatar`) for your own avatar, the *edit user* ability for someone else's. Revoking *Edit own avatar* also blocks it here.
+- Avatar re-crops (focal point / zoom changes, picking a media file) are limited to 20 per minute per user; admins are exempt.
 
 ## Migrating from sycho/flarum-profile-cover
 

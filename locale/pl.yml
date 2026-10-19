@@ -65,6 +65,7 @@ tryhackx-cover-studio:
     no_adapter: Przesyłanie obrazów nie jest skonfigurowane na tym forum (ustawienia MIME w FoF Upload).
     upload_failed: Nie udało się zapisać pliku. Spróbuj ponownie.
     too_many_uploads: Wgrywasz pliki zbyt szybko. Odczekaj minutę i spróbuj ponownie.
+    too_many_changes: Zmieniasz awatar zbyt szybko. Odczekaj minutę i spróbuj ponownie.
     file_not_eligible: Ten plik nie może zostać użyty jako cover.
     no_default_image: Nie ma domyślnego obrazu do przesunięcia.
     unknown_default_kind: Nieznany typ domyślnego obrazu.

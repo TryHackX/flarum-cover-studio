@@ -85,6 +85,14 @@ class UploadBridge
 
         $upload = $this->files->moveUploadedFileToTemp($uploadedFile);
 
+        // fof/upload returns null when the temp file could not be created/moved
+        // (full disk, permissions) — a clean validation error instead of a 500.
+        if ($upload === null) {
+            throw new ValidationException([
+                'upload' => $this->translator->trans('tryhackx-cover-studio.api.upload_failed'),
+            ]);
+        }
+
         try {
             $mime = (string) $this->files->determineMime($upload);
 
