@@ -19,6 +19,9 @@ interface SharedFile {
 
 const t = (key: string, params?: Record<string, unknown>) => app.translator.trans(`tryhackx-cover-studio.admin.default.${key}`, params);
 
+/** Raster types the server accepts as a cover / avatar (UploadBridge::ALLOWED_MIMES). */
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
 /**
  * Admin editor for a forum-wide default image (cover or avatar). Mirrors the
  * forum-side cover/avatar editors — upload OR pick from the shared media
@@ -271,9 +274,10 @@ export default class DefaultImageModal extends Modal<DefaultImageModalAttrs> {
       .then((response) => {
         const data: any[] = (response && response.data) || [];
 
-        // Only raster images can be used as a cover / avatar.
+        // Only the raster types the server accepts — an SVG or BMP would just be
+        // rejected after picking ("This file cannot be used").
         this.sharedFiles = data
-          .filter((f) => String(f?.attributes?.type || '').indexOf('image/') === 0 && f?.attributes?.url)
+          .filter((f) => ALLOWED_TYPES.includes(String(f?.attributes?.type || '')) && f?.attributes?.url)
           .map((f) => ({ id: String(f.id), url: String(f.attributes.url), name: String(f.attributes.baseName || '') }));
 
         this.sharedLoading = false;

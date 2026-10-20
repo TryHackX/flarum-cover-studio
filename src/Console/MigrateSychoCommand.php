@@ -11,7 +11,6 @@
 
 namespace TryHackX\CoverStudio\Console;
 
-use Carbon\Carbon;
 use Flarum\Foundation\Paths;
 use Flarum\Settings\SettingsRepositoryInterface;
 use Flarum\User\User;
@@ -20,7 +19,7 @@ use FoF\Upload\Contracts\Template;
 use FoF\Upload\File;
 use FoF\Upload\Helpers\Util;
 use Illuminate\Console\Command;
-use Illuminate\Database\Schema\Builder;
+use Illuminate\Database\ConnectionInterface;
 use Intervention\Image\ImageManager;
 use Ramsey\Uuid\Uuid;
 use TryHackX\CoverStudio\CoverStudioUserData;
@@ -58,10 +57,14 @@ class MigrateSychoCommand extends Command
         Paths $paths,
         Util $util,
         ImageManager $imageManager,
-        Builder $schema,
+        ConnectionInterface $db,
         SettingsRepositoryInterface $settings
     ): void {
-        if (!$schema->hasColumn('users', 'cover')) {
+        // The schema builder comes from the connection: Flarum binds
+        // Illuminate\Database\Schema\Builder in the container only while
+        // `migrate` runs — injected anywhere else it is a bare instance without
+        // a grammar ("compileColumns() on null").
+        if (!$db->getSchemaBuilder()->hasColumn('users', 'cover')) {
             $this->error('The users.cover column does not exist — sycho/flarum-profile-cover is not installed (or was already purged). Nothing to migrate.');
 
             return;
@@ -234,6 +237,9 @@ class MigrateSychoCommand extends Command
             $uuid = Uuid::uuid4()->toString();
         } while (File::byUuid($uuid)->exists());
 
+        // created_at is left to the column default (CURRENT_TIMESTAMP), exactly
+        // like fof/upload's own uploads — the database clock, so imported files
+        // sort among the user's other uploads even when it is not UTC.
         $file = new File();
         $file->forceFill([
             'uuid'         => $uuid,
@@ -245,7 +251,6 @@ class MigrateSychoCommand extends Command
             'shared'       => false,
             'image_width'  => $info[0],
             'image_height' => $info[1],
-            'created_at'   => Carbon::now(),
         ]);
 
         if ($makeThumbs) {

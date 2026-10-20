@@ -107,7 +107,7 @@ Cover Studio is built to stay cheap on large forums (hundreds of thousands to mi
 - Real (magic-byte) MIME detection via FoF Upload's detector; client-declared types are only a first-line check.
 - Allowed formats: JPEG, PNG, WebP, GIF. SVG and BMP are rejected by design.
 - Decompression-bomb guard: image dimensions are validated from the header (~40 MP ceiling) before any decode.
-- Upload flood guard: at most 6 uploads per user per minute (admins exempt).
+- Upload flood guard: at most 6 cover / avatar uploads per user per minute through Cover Studio (admins exempt; kept in the cache, so it does not depend on the database's time zone).
 - Reusing a media file as a cover requires that the file belongs to the profile owner's personal library; foreign/shared/private files are rejected without leaking their existence.
 - The uncropped avatar original is only ever serialized to the user themselves and to staff who can edit them.
 - All uploads run through the full FoF Upload pipeline (SVG sanitizer not needed here, watermark/resize settings, thumbnails, storage adapters), so forum-wide upload policies apply consistently.

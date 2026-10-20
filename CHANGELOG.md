@@ -4,6 +4,25 @@ All notable changes to `tryhackx/flarum-cover-studio` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.3.1] - 2026-10-20
+
+### Fixed
+- The upload limit (6 per minute per profile owner) no longer blocks covers and
+  avatars for hours. It used to count the owner's files from fof/upload's
+  `created_at`, which the database fills in its own (server-local) time while
+  Flarum runs in UTC — on a server two hours ahead of UTC every upload of the
+  last two hours counted, post attachments included. The limit is now kept in
+  the cache and counts only uploads made through Cover Studio.
+- `php flarum cover-studio:migrate-sycho` crashed on Flarum 2 ("Call to a
+  member function compileColumns() on null"): the schema builder is now taken
+  from the database connection. Imported files get their `created_at` from the
+  database, like every other fof/upload file.
+- The admin "Choose from shared media" picker for the default cover / avatar
+  lists only the image types that can actually be used (JPEG, PNG, WebP, GIF);
+  picking an SVG or BMP used to end with "This file cannot be used".
+
+No migration required.
+
 ## [2.3.0] - 2026-10-20
 
 ### Security

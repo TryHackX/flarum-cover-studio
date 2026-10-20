@@ -11,7 +11,6 @@
 
 namespace TryHackX\CoverStudio\Upload;
 
-use Carbon\Carbon;
 use Flarum\Foundation\Paths;
 use Flarum\Foundation\ValidationException;
 use Flarum\User\User;
@@ -21,6 +20,7 @@ use FoF\Upload\File;
 use FoF\Upload\Helpers\Util;
 use FoF\Upload\Repositories\FileRepository;
 use GuzzleHttp\Client;
+use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Arr;
 use League\Flysystem\Filesystem;
@@ -65,7 +65,8 @@ class UploadBridge
         protected FileRepository $files,
         protected TranslatorInterface $translator,
         protected Paths $paths,
-        protected Client $http
+        protected Client $http,
+        protected Cache $cache
     ) {
     }
 
@@ -289,8 +290,15 @@ class UploadBridge
     }
 
     /**
-     * DB-backed upload throttle: at most a handful of pipeline uploads per
-     * owner per minute. Admins are exempt.
+     * Upload throttle: at most a handful of uploads through THIS bridge per
+     * owner per minute. Admins are exempt; a cache failure never blocks.
+     *
+     * Counted in the cache rather than from fof_upload_files.created_at: fof
+     * fills that column from the DATABASE clock (DEFAULT CURRENT_TIMESTAMP, the
+     * server's local time) while Flarum runs PHP in UTC, so a "last minute"
+     * query drifted by the server's UTC offset (two hours in CEST) and also
+     * counted every ordinary upload of the owner — post attachments included —
+     * blocking covers and avatars for hours.
      */
     protected function assertNotFlooding(User $owner, User $actor): void
     {
@@ -298,12 +306,16 @@ class UploadBridge
             return;
         }
 
-        $recent = File::query()
-            ->where('actor_id', $owner->id)
-            ->where('created_at', '>=', Carbon::now()->subMinute())
-            ->count();
+        $key = 'tryhackx-cover-studio.uploads:' . $owner->id . ':' . intdiv(time(), 60);
 
-        if ($recent >= self::UPLOADS_PER_MINUTE) {
+        try {
+            $this->cache->add($key, 0, 120);
+            $count = (int) $this->cache->increment($key);
+        } catch (\Throwable) {
+            return;
+        }
+
+        if ($count > self::UPLOADS_PER_MINUTE) {
             throw new ValidationException([
                 'upload' => $this->translator->trans('tryhackx-cover-studio.api.too_many_uploads'),
             ]);
